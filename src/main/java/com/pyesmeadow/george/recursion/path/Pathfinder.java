@@ -14,16 +14,16 @@ public class Pathfinder {
 		this.node2 = node2;
 	}
 
-	public List<LinkedList<ITraversable>> pathfind()
+	public List<Path> pathfind()
 	{
-		List<LinkedList<ITraversable>> possiblePaths = new ArrayList<>();
-		new Recursor(node1, node2, new LinkedList<>()).calculatePaths(0, possiblePaths);
+		List<Path> possiblePaths = new ArrayList<>();
+		new Recursor(node1, node2, new Path()).calculatePaths(0, possiblePaths);
 		System.out.println("Calculated paths (" + possiblePaths.size() + "):");
 
 		possiblePaths.forEach(path ->
 		{
 			String s = "";
-			for (ITraversable component : path)
+			for (ITraversable component : path.getComponents())
 			{
 				if (component instanceof Node)
 				{
@@ -38,13 +38,13 @@ public class Pathfinder {
 			System.out.println(s);
 		});
 
-		List<LinkedList<ITraversable>> shortestPaths = determineShortestPaths(possiblePaths);
+		List<Path> shortestPaths = determineShortestPaths(possiblePaths);
 		System.out.println("Calculated shortest paths (" + shortestPaths.size() + "):");
 
 		shortestPaths.forEach(path ->
 		{
 			String s = "";
-			for (ITraversable component : path)
+			for (ITraversable component : path.getComponents())
 			{
 				if (component instanceof Node)
 				{
@@ -62,28 +62,28 @@ public class Pathfinder {
 		// Highlight the first shortest path
 		if (shortestPaths.size() > 0)
 		{
-			LinkedList<ITraversable> highlightedPath = shortestPaths.get(0);
-			highlightedPath.forEach(iTraversable -> iTraversable.setSelected(true));
+			Path highlightedPath = shortestPaths.get(0);
+			highlightedPath.getComponents().forEach(iTraversable -> iTraversable.setSelected(true));
 		}
 
 		return shortestPaths;
 	}
 
 
-	private List<LinkedList<ITraversable>> determineShortestPaths(List<LinkedList<ITraversable>> possiblePaths)
+	private List<Path> determineShortestPaths(List<Path> possiblePaths)
 	{
-		List<LinkedList<ITraversable>> shortestPaths = new ArrayList<>();
+		List<Path> shortestPaths = new ArrayList<>();
 
 		possiblePaths.forEach(path ->
 		{
 			// If there are no paths shorter, delete all current shortest paths and add the new shortest path
-			if (shortestPaths.isEmpty() || shortestPaths.get(0).size() > path.size())
+			if (shortestPaths.isEmpty() || shortestPaths.get(0).getComponents().size() > path.getComponents().size())
 			{
 				shortestPaths.clear();
 				shortestPaths.add(path);
 			}
 			// If the shortest path is the same length, add the path to the list of shortest paths
-			else if (shortestPaths.get(0).size() == path.size())
+			else if (shortestPaths.get(0).getComponents().size() == path.getComponents().size())
 			{
 				shortestPaths.add(path);
 			}
@@ -95,14 +95,14 @@ public class Pathfinder {
 	private class Recursor {
 
 		private final Node node1, node2;
-		private LinkedList<ITraversable> currentPath;
+		private Path currentPath;
 
 		/**
 		 * @param node1       the node to start from
 		 * @param node2       the target node
 		 * @param currentPath the components already traversed in this path
 		 */
-		public Recursor(Node node1, Node node2, LinkedList<ITraversable> currentPath)
+		public Recursor(Node node1, Node node2, Path currentPath)
 		{
 			this.node1 = node1;
 			this.node2 = node2;
@@ -112,7 +112,7 @@ public class Pathfinder {
 		/**
 		 * @param pathList the list to add possible paths to
 		 */
-		private void calculatePaths(int level, List<LinkedList<ITraversable>> pathList)
+		private void calculatePaths(int level, List<Path> pathList)
 		{
 			for (int i = 0; i < level; i++)
 			{
@@ -120,25 +120,25 @@ public class Pathfinder {
 			}
 			System.out.print(node1.id + "\n");
 
-			currentPath.add(node1);
+			currentPath.getComponents().add(node1);
 
 			if (node1.equals(node2))
 			{
-				currentPath.add(node1);
+				currentPath.getComponents().add(node1);
 				pathList.add(currentPath);
 			}
 			else
 			{
 				for (Connection connection : node1.connections)
 				{
-					LinkedList<ITraversable> currentPathClone = (LinkedList<ITraversable>) currentPath.clone();
+					Path currentPathClone = (Path) currentPath.clone();
 
-					if (currentPathClone.contains(connection)) continue;
+					if (currentPathClone.getComponents().contains(connection)) continue;
 
 					Node next = connection.follow(node1);
-					if (currentPathClone.contains(next)) continue;
+					if (currentPathClone.getComponents().contains(next)) continue;
 
-					currentPathClone.add(connection);
+					currentPathClone.getComponents().add(connection);
 
 					Recursor recursor = new Recursor(next, node2, currentPathClone);
 					recursor.calculatePaths(level + 1, pathList);

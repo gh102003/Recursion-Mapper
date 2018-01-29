@@ -217,7 +217,7 @@ public class MouseInput implements MouseInputListener {
 		}
 	}
 
-	private void deselectAllNodes()
+	public void deselectAllNodes()
 	{
 		List<Node> nodeList = canvas.nodeList;
 		int i = 0;
