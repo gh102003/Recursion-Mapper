@@ -1,11 +1,12 @@
-package com.pyesmeadow.george.recursion.path;
+package com.pyesmeadow.george.recursion.network;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 public class Pathfinder {
 
+	public static PathfindMode PATHFIND_MODE = PathfindMode.COUNT;
 	private final Node node1, node2;
 
 	public Pathfinder(Node node1, Node node2)
@@ -73,23 +74,79 @@ public class Pathfinder {
 	private List<Path> determineShortestPaths(List<Path> possiblePaths)
 	{
 		List<Path> shortestPaths = new ArrayList<>();
+		Function<Path, Integer> costCalculator = PATHFIND_MODE.getCostCalculator();
 
 		possiblePaths.forEach(path ->
 		{
 			// If there are no paths shorter, delete all current shortest paths and add the new shortest path
-			if (shortestPaths.isEmpty() || shortestPaths.get(0).getComponents().size() > path.getComponents().size())
+			if (shortestPaths.isEmpty() || shortestPaths.get(0).calculateCost(costCalculator) > path.calculateCost(costCalculator))
 			{
 				shortestPaths.clear();
 				shortestPaths.add(path);
 			}
 			// If the shortest path is the same length, add the path to the list of shortest paths
-			else if (shortestPaths.get(0).getComponents().size() == path.getComponents().size())
+			else if (shortestPaths.get(0).calculateCost(costCalculator) == path.calculateCost(costCalculator))
 			{
 				shortestPaths.add(path);
 			}
 		});
 
 		return shortestPaths;
+	}
+
+	public enum PathfindMode {
+		COUNT("Count", path ->
+		{
+			int cost = 0;
+			for (ITraversable component : path.getComponents())
+			{
+				if (component instanceof Connection)
+				{
+					cost++;
+				}
+			}
+			return cost;
+		}), PYTHAGOREAN_DISTANCE("Pythagorean distance", path ->
+		{
+			int cost = 0;
+			for (ITraversable component : path.getComponents())
+			{
+				if (component instanceof Connection)
+				{
+					Connection connection = (Connection) component;
+
+					Node node1 = connection.node1;
+					Node node2 = connection.node2;
+
+					int lengthX = node1.x - node2.x;
+					int lengthY = node1.y - node2.y;
+
+					// Calculate distance from centre to point using Pythagoras
+					double length = Math.sqrt(Math.pow(lengthX, 2) + Math.pow(lengthY, 2));
+					cost += length;
+				}
+			}
+			return Double.valueOf(cost).intValue();
+		});
+
+		private final String name;
+		private final Function<Path, Integer> costCalculator;
+
+		PathfindMode(String name, Function<Path, Integer> costCalculator)
+		{
+			this.name = name;
+			this.costCalculator = costCalculator;
+		}
+
+		public Function<Path, Integer> getCostCalculator()
+		{
+			return costCalculator;
+		}
+
+		public String getName()
+		{
+			return name;
+		}
 	}
 
 	private class Recursor {

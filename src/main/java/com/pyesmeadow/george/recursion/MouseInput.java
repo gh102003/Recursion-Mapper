@@ -1,8 +1,8 @@
 package com.pyesmeadow.george.recursion;
 
-import com.pyesmeadow.george.recursion.path.Connection;
-import com.pyesmeadow.george.recursion.path.Node;
-import com.pyesmeadow.george.recursion.path.Pathfinder;
+import com.pyesmeadow.george.recursion.network.Connection;
+import com.pyesmeadow.george.recursion.network.Node;
+import com.pyesmeadow.george.recursion.network.Pathfinder;
 import com.pyesmeadow.george.recursion.ui.CanvasButton;
 import org.jetbrains.annotations.Nullable;
 

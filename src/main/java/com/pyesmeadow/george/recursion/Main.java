@@ -1,7 +1,8 @@
 package com.pyesmeadow.george.recursion;
 
-import com.pyesmeadow.george.recursion.path.Node;
-import com.pyesmeadow.george.recursion.path.Connection;
+import com.pyesmeadow.george.recursion.network.Connection;
+import com.pyesmeadow.george.recursion.network.Node;
+import com.pyesmeadow.george.recursion.network.Pathfinder;
 import com.pyesmeadow.george.recursion.ui.CanvasButton;
 
 import java.awt.*;
@@ -13,30 +14,15 @@ public class Main extends Canvas implements Runnable {
 
 	private static final int WIDTH = 1280;
 	private static final int HEIGHT = 720;
+	// For debugging
+	private static final String alphabet = "abcdefghijklmnopqrstuvwxyz";
+	private static int nodeIDCounter = 0;
+	private static int connectionIDCounter = 0;
 	public List<CanvasButton> buttonList = new ArrayList<CanvasButton>();
 	public List<Node> nodeList = new ArrayList<Node>();
 	public List<Connection> connectionList = new ArrayList<Connection>();
 	private Thread thread;
 	private boolean running = false;
-
-	// For debugging
-	private static final String alphabet = "abcdefghijklmnopqrstuvwxyz";
-	private static int nodeIDCounter = 0;
-	private static int connectionIDCounter = 0;
-
-	public static synchronized char assignNodeID()
-	{
-		char ID = alphabet.charAt(nodeIDCounter);
-		nodeIDCounter++;
-		return ID;
-	}
-
-	public static synchronized char assignConnectionID()
-	{
-		char ID = alphabet.toUpperCase().charAt(connectionIDCounter);
-		connectionIDCounter++;
-		return ID;
-	}
 
 	public Main()
 	{
@@ -73,6 +59,41 @@ public class Main extends Canvas implements Runnable {
 						}
 					}
 				}));
+
+		buttonList.add(new CanvasButton(WIDTH - 60,
+				HEIGHT - 200,
+				50,
+				"PM: " + Pathfinder.PATHFIND_MODE.getName(),
+				button ->
+				{
+					Pathfinder.PathfindMode[] values = Pathfinder.PathfindMode.values();
+
+					for (int i = 0; i < values.length; i++)
+					{
+						Pathfinder.PathfindMode pathfindMode = values[i];
+						if (Pathfinder.PATHFIND_MODE == pathfindMode)
+						{
+							Pathfinder.PATHFIND_MODE = values[(i + 1) % values.length];
+
+							button.setText("PM: " + Pathfinder.PATHFIND_MODE.getName());
+							return;
+						}
+					}
+				}));
+	}
+
+	public static synchronized char assignNodeID()
+	{
+		char ID = alphabet.charAt(nodeIDCounter);
+		nodeIDCounter++;
+		return ID;
+	}
+
+	public static synchronized char assignConnectionID()
+	{
+		char ID = alphabet.toUpperCase().charAt(connectionIDCounter);
+		connectionIDCounter++;
+		return ID;
 	}
 
 	public static void main(String args[])

@@ -1,10 +1,10 @@
-package com.pyesmeadow.george.recursion.path;
+package com.pyesmeadow.george.recursion.network;
 
 import java.awt.*;
 
 public class Connection implements ITraversable {
 
-	private final Node node1, node2;
+	public final Node node1, node2;
 	public char id;
 
 	protected boolean selected = false;

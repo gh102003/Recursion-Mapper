@@ -1,4 +1,4 @@
-package com.pyesmeadow.george.recursion.path;
+package com.pyesmeadow.george.recursion.network;
 
 public interface ITraversable {
 
