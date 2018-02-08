@@ -1,9 +1,11 @@
 package com.pyesmeadow.george.recursion;
 
 import com.pyesmeadow.george.recursion.network.Connection;
+import com.pyesmeadow.george.recursion.network.Network;
 import com.pyesmeadow.george.recursion.network.Node;
 import com.pyesmeadow.george.recursion.network.Pathfinder;
 import com.pyesmeadow.george.recursion.ui.CanvasButton;
+import com.pyesmeadow.george.recursion.ui.CanvasDropdown;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.MouseInputListener;
@@ -12,16 +14,20 @@ import java.util.List;
 
 public class MouseInput implements MouseInputListener {
 
-	private final Main canvas;
+	private final Network network;
+	private final List<CanvasButton> buttonList;
+	private final List<CanvasDropdown> dropdownList;
 
 	public InteractionMode interactionMode = InteractionMode.ADD;
 
 	@Nullable
 	private Node selectedNode;
 
-	public MouseInput(Main canvas)
+	public MouseInput(Network network, List<CanvasButton> buttonList, List<CanvasDropdown> dropdownList)
 	{
-		this.canvas = canvas;
+		this.network = network;
+		this.buttonList = buttonList;
+		this.dropdownList = dropdownList;
 	}
 
 	private static boolean isPointInsideSquareRegion(int pointX, int pointY, int x1, int y1, int x2, int y2)
@@ -35,8 +41,26 @@ public class MouseInput implements MouseInputListener {
 		int mouseX = e.getX();
 		int mouseY = e.getY();
 
+		// If a dropdown was clicked
+		for (int i = dropdownList.size() - 1; i >= 0; i--)
+		{
+			CanvasDropdown canvasDropdown = dropdownList.get(i);
+			if (canvasDropdown.containsPoint(mouseX, mouseY))
+			{
+				canvasDropdown.click(mouseX, mouseY);
+
+				deselectAll();
+
+				return;
+			}
+			else
+			{
+				// Close dropdown if it was not clicked
+				canvasDropdown.setDropdownOpen(false);
+			}
+		}
+
 		// If a button was clicked
-		List<CanvasButton> buttonList = canvas.buttonList;
 		for (int i = buttonList.size() - 1; i >= 0; i--)
 		{
 			CanvasButton canvasButton = buttonList.get(i);
@@ -44,7 +68,7 @@ public class MouseInput implements MouseInputListener {
 			{
 				canvasButton.click();
 
-				deselectAllNodes();
+				deselectAll();
 
 				return;
 			}
@@ -53,7 +77,7 @@ public class MouseInput implements MouseInputListener {
 		if (interactionMode == InteractionMode.ADD)
 		{
 			// If a node is clicked, attempt to create a path
-			List<Node> nodeList = canvas.nodeList;
+			List<Node> nodeList = network.getNodeList();
 			for (int i = nodeList.size() - 1; i >= 0; i--)
 			{
 				Node node = nodeList.get(i);
@@ -72,7 +96,7 @@ public class MouseInput implements MouseInputListener {
 					else
 					{
 						// If another node is selected, create a new path and clear the selection
-						canvas.connectionList.add(new Connection(selectedNode, node, Main.assignConnectionID()));
+						network.getConnectionList().add(new Connection(selectedNode, node, network.assignConnectionID()));
 
 						deselectAllNodes();
 					}
@@ -83,11 +107,11 @@ public class MouseInput implements MouseInputListener {
 			deselectAllNodes();
 
 			// If the click was on empty space, attempt to create a node there
-			canvas.nodeList.add(new Node(mouseX, mouseY, Main.assignNodeID()));
+			network.getNodeList().add(new Node(mouseX, mouseY, network.assignNodeID()));
 		}
 		else if (interactionMode == InteractionMode.PATHFIND)
 		{
-			List<Node> nodeList = canvas.nodeList;
+			List<Node> nodeList = network.getNodeList();
 			for (int i = nodeList.size() - 1; i >= 0; i--)
 			{
 				Node node = nodeList.get(i);
@@ -115,7 +139,7 @@ public class MouseInput implements MouseInputListener {
 		else if (interactionMode == InteractionMode.DELETE)
 		{
 			// If a node is clicked, delete it
-			List<Node> nodeList = canvas.nodeList;
+			List<Node> nodeList = network.getNodeList();
 			for (int i1 = nodeList.size() - 1; i1 >= 0; i1--)
 			{
 				Node node = nodeList.get(i1);
@@ -131,10 +155,10 @@ public class MouseInput implements MouseInputListener {
 						connection.follow(node).connections.remove(connection);
 
 						// Delete connection from connectionList
-						canvas.connectionList.remove(connection);
+						network.getConnectionList().remove(connection);
 					}
 
-					canvas.nodeList.remove(node);
+					network.getNodeList().remove(node);
 				}
 			}
 		}
@@ -172,7 +196,7 @@ public class MouseInput implements MouseInputListener {
 
 		if (interactionMode == InteractionMode.MOVE)
 		{
-			List<Node> nodeList = canvas.nodeList;
+			List<Node> nodeList = network.getNodeList();
 			for (int i = nodeList.size() - 1; i >= 0; i--)
 			{
 				Node node = nodeList.get(i);
@@ -204,7 +228,17 @@ public class MouseInput implements MouseInputListener {
 		int mouseX = e.getX();
 		int mouseY = e.getY();
 
-		List<CanvasButton> buttonList = canvas.buttonList;
+		for (int i = dropdownList.size() - 1; i >= 0; i--)
+		{
+			CanvasDropdown canvasDropdown = dropdownList.get(i);
+			if (canvasDropdown.containsPoint(mouseX, mouseY))
+			{
+				canvasDropdown.setHover(true);
+				return;
+			}
+			canvasDropdown.setHover(false);
+		}
+
 		for (int i = buttonList.size() - 1; i >= 0; i--)
 		{
 			CanvasButton canvasButton = buttonList.get(i);
@@ -217,14 +251,33 @@ public class MouseInput implements MouseInputListener {
 		}
 	}
 
+	public void deselectAll()
+	{
+		deselectAllNodes();
+		deselectAllConnections();
+	}
+
 	public void deselectAllNodes()
 	{
-		List<Node> nodeList = canvas.nodeList;
+		List<Node> nodeList = network.getNodeList();
 		int i = 0;
 		while (i < nodeList.size())
 		{
 			Node node = nodeList.get(i);
 			node.setSelected(false);
+			i++;
+		}
+		selectedNode = null;
+	}
+
+	public void deselectAllConnections()
+	{
+		List<Connection> connectionList = network.getConnectionList();
+		int i = 0;
+		while (i < connectionList.size())
+		{
+			Connection connection = connectionList.get(i);
+			connection.setSelected(false);
 			i++;
 		}
 		selectedNode = null;
@@ -240,7 +293,7 @@ public class MouseInput implements MouseInputListener {
 			this.name = name;
 		}
 
-		public String getName()
+		public String toString()
 		{
 			return name;
 		}

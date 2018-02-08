@@ -34,11 +34,6 @@ public class CanvasButton {
 		onClick.accept(this);
 	}
 
-	public void tick()
-	{
-
-	}
-
 	public void setHover(boolean hover)
 	{
 		this.hover = hover;

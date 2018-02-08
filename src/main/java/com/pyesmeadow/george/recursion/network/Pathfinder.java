@@ -143,7 +143,7 @@ public class Pathfinder {
 			return costCalculator;
 		}
 
-		public String getName()
+		public String toString()
 		{
 			return name;
 		}
