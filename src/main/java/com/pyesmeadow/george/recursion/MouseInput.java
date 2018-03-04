@@ -1,31 +1,30 @@
 package com.pyesmeadow.george.recursion;
 
 import com.pyesmeadow.george.recursion.network.Connection;
-import com.pyesmeadow.george.recursion.network.Network;
 import com.pyesmeadow.george.recursion.network.Node;
 import com.pyesmeadow.george.recursion.network.Pathfinder;
+import com.pyesmeadow.george.recursion.network.io.NetworkManager;
 import com.pyesmeadow.george.recursion.ui.CanvasButton;
 import com.pyesmeadow.george.recursion.ui.CanvasDropdown;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class MouseInput implements MouseInputListener {
 
-	private final Network network;
+	private final NetworkManager networkManager;
 	private final List<CanvasButton> buttonList;
 	private final List<CanvasDropdown> dropdownList;
-
 	public InteractionMode interactionMode = InteractionMode.ADD;
-
 	@Nullable
 	private Node selectedNode;
 
-	public MouseInput(Network network, List<CanvasButton> buttonList, List<CanvasDropdown> dropdownList)
+	public MouseInput(NetworkManager networkManager, List<CanvasButton> buttonList, List<CanvasDropdown> dropdownList)
 	{
-		this.network = network;
+		this.networkManager = networkManager;
 		this.buttonList = buttonList;
 		this.dropdownList = dropdownList;
 	}
@@ -74,93 +73,131 @@ public class MouseInput implements MouseInputListener {
 			}
 		}
 
-		if (interactionMode == InteractionMode.ADD)
+		switch (interactionMode)
 		{
-			// If a node is clicked, attempt to create a path
-			List<Node> nodeList = network.getNodeList();
-			for (int i = nodeList.size() - 1; i >= 0; i--)
+			case ADD:
 			{
-				Node node = nodeList.get(i);
-				if (node.containsPoint(mouseX, mouseY))
+				// If a node is clicked, attempt to create a path
+				List<Node> nodeList = networkManager.network.getNodeList();
+				for (int i = nodeList.size() - 1; i >= 0; i--)
 				{
-					// If no node is selected, select the node that was just clicked
-					if (selectedNode == null)
+					Node node = nodeList.get(i);
+					if (node.containsPoint(mouseX, mouseY))
 					{
-						node.setSelected(true);
-						selectedNode = node;
-					}
-					else if (selectedNode == node)
-					{
-						deselectAllNodes();
-					}
-					else
-					{
-						// If another node is selected, create a new path and clear the selection
-						network.getConnectionList().add(new Connection(selectedNode, node, network.assignConnectionID()));
+						// If no node is selected, select the node that was just clicked
+						if (selectedNode == null)
+						{
+							node.setSelected(true);
+							selectedNode = node;
+						}
+						else if (selectedNode == node)
+						{
+							deselectAllNodes();
+						}
+						else
+						{
+							// If another node is selected, create a new path and clear the selection
+							networkManager.network.addConnection(new Connection(selectedNode,
+									node,
+									networkManager.network.assignConnectionID(),
+									networkManager.network));
 
-						deselectAllNodes();
+							deselectAllNodes();
+						}
+						return;
 					}
-					return;
 				}
+
+				deselectAllNodes();
+
+				// If the click was on empty space, attempt to create a node there
+				networkManager.network.addNode(new Node(mouseX,
+						mouseY,
+						networkManager.network.assignNodeID(),
+						networkManager.network));
+				break;
 			}
-
-			deselectAllNodes();
-
-			// If the click was on empty space, attempt to create a node there
-			network.getNodeList().add(new Node(mouseX, mouseY, network.assignNodeID()));
-		}
-		else if (interactionMode == InteractionMode.PATHFIND)
-		{
-			List<Node> nodeList = network.getNodeList();
-			for (int i = nodeList.size() - 1; i >= 0; i--)
+			case PATHFIND:
 			{
-				Node node = nodeList.get(i);
-				if (node.containsPoint(mouseX, mouseY))
+				List<Node> nodeList = networkManager.network.getNodeList();
+				for (int i = nodeList.size() - 1; i >= 0; i--)
 				{
-					// If no node is selected, select the node that was just clicked
-					if (selectedNode == null)
+					Node node = nodeList.get(i);
+					if (node.containsPoint(mouseX, mouseY))
 					{
-						node.setSelected(true);
-						selectedNode = node;
-					}
-					else
-					{
-						// If another node is selected, pathfind
-						new Pathfinder(selectedNode, node).pathfind();
+						// If no node is selected, select the node that was just clicked
+						if (selectedNode == null)
+						{
+							node.setSelected(true);
+							selectedNode = node;
+						}
+						else
+						{
+							// If another node is selected, pathfind
+							new Pathfinder(selectedNode, node).pathfind();
 
-						deselectAllNodes();
+							deselectAllNodes();
+						}
+						return;
 					}
-					return;
 				}
-			}
 
-			deselectAllNodes();
-		}
-		else if (interactionMode == InteractionMode.DELETE)
-		{
-			// If a node is clicked, delete it
-			List<Node> nodeList = network.getNodeList();
-			for (int i1 = nodeList.size() - 1; i1 >= 0; i1--)
+				deselectAllNodes();
+				break;
+			}
+			case DELETE:
 			{
-				Node node = nodeList.get(i1);
-				if (node.containsPoint(mouseX, mouseY))
+				// If a node is clicked, delete it
+				List<Node> nodeList = networkManager.network.getNodeList();
+				for (int i1 = nodeList.size() - 1; i1 >= 0; i1--)
 				{
-					// Delete all connected paths
-					List<Connection> connections = node.connections;
-					for (int i = connections.size() - 1; i >= 0; i--)
+					Node node = nodeList.get(i1);
+					if (node.containsPoint(mouseX, mouseY))
 					{
-						Connection connection = connections.get(i);
+						// Delete all connected paths
+						List<Connection> connections = node.getConnections();
+						for (int i = connections.size() - 1; i >= 0; i--)
+						{
+							Connection connection = connections.get(i);
 
-						// Delete connection from other connected node
-						connection.follow(node).connections.remove(connection);
+							// Delete connection from other connected node
+							connection.follow(node).removeConnection(connection);
 
-						// Delete connection from connectionList
-						network.getConnectionList().remove(connection);
+							// Delete connection from connectionList
+							networkManager.network.getConnectionList().remove(connection);
+						}
+
+						networkManager.network.getNodeList().remove(node);
 					}
-
-					network.getNodeList().remove(node);
 				}
+				break;
 			}
+			case EDIT:
+				for (int i = networkManager.network.getConnectionList().size() - 1; i >= 0; i--)
+				{
+					Connection connection = networkManager.network.getConnectionList().get(i);
+
+					if (connection.containsPoint(mouseX, mouseY))
+					{
+						String input = JOptionPane.showInputDialog("Input a new weight for connection " + connection.id,
+								connection.getWeight());
+
+						try
+						{
+							connection.setWeight(Integer.parseInt(input));
+						}
+						catch (NumberFormatException e1)
+						{
+							JOptionPane.showMessageDialog(null,
+									"Could not parse \"" + input + "\"",
+									"Parse error",
+									JOptionPane.WARNING_MESSAGE);
+						}
+
+						return;
+					}
+				}
+				break;
 		}
 	}
 
@@ -196,7 +233,7 @@ public class MouseInput implements MouseInputListener {
 
 		if (interactionMode == InteractionMode.MOVE)
 		{
-			List<Node> nodeList = network.getNodeList();
+			List<Node> nodeList = networkManager.network.getNodeList();
 			for (int i = nodeList.size() - 1; i >= 0; i--)
 			{
 				Node node = nodeList.get(i);
@@ -205,8 +242,8 @@ public class MouseInput implements MouseInputListener {
 					// If the selected node was dragged, move the node
 					if (selectedNode == node)
 					{
-						node.x = mouseX;
-						node.y = mouseY;
+						node.setX(mouseX);
+						node.setY(mouseY);
 					}
 					// If a different node was clicked, deselect all nodes and select
 					else
@@ -259,7 +296,7 @@ public class MouseInput implements MouseInputListener {
 
 	public void deselectAllNodes()
 	{
-		List<Node> nodeList = network.getNodeList();
+		List<Node> nodeList = networkManager.network.getNodeList();
 		int i = 0;
 		while (i < nodeList.size())
 		{
@@ -272,7 +309,7 @@ public class MouseInput implements MouseInputListener {
 
 	public void deselectAllConnections()
 	{
-		List<Connection> connectionList = network.getConnectionList();
+		List<Connection> connectionList = networkManager.network.getConnectionList();
 		int i = 0;
 		while (i < connectionList.size())
 		{
@@ -284,7 +321,7 @@ public class MouseInput implements MouseInputListener {
 	}
 
 	public enum InteractionMode {
-		ADD("Add"), MOVE("Move"), PATHFIND("Pathfind"), DELETE("Delete");
+		ADD("Add"), MOVE("Move"), EDIT("Edit"), PATHFIND("Pathfind"), DELETE("Delete");
 
 		private final String name;
 

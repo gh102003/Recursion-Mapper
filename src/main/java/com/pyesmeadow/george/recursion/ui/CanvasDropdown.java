@@ -1,5 +1,7 @@
 package com.pyesmeadow.george.recursion.ui;
 
+import com.pyesmeadow.george.recursion.Renderer;
+
 import java.awt.*;
 import java.util.function.Consumer;
 

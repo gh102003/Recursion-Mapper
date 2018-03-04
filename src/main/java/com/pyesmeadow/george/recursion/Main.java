@@ -1,30 +1,39 @@
 package com.pyesmeadow.george.recursion;
 
-import com.pyesmeadow.george.recursion.network.Network;
 import com.pyesmeadow.george.recursion.network.Pathfinder;
-import com.pyesmeadow.george.recursion.ui.CanvasButton;
-import com.pyesmeadow.george.recursion.ui.CanvasDropdown;
+import com.pyesmeadow.george.recursion.network.io.NetworkManager;
+import com.pyesmeadow.george.recursion.ui.*;
+import com.pyesmeadow.george.recursion.ui.MenuBar;
+import com.pyesmeadow.george.recursion.ui.Window;
 
 import java.awt.*;
-import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main extends Canvas implements Runnable {
 
-	private static final int WIDTH = 1280;
-	private static final int HEIGHT = 720;
-	public Network network = new Network();
-	public List<CanvasButton> buttonList = new ArrayList<>();
-	public List<CanvasDropdown> dropdownList = new ArrayList<>();
+	public static Main main;
+	private static int initialWidth = 1280;
+	private static int initialHeight = 720;
+	public MouseInput mouseInputListener;
+	private NetworkManager networkManager = new NetworkManager();
+	public MenuBar menuBar;
+	private Renderer renderer;
+	private List<CanvasButton> buttonList = new ArrayList<>();
+	private List<CanvasDropdown> dropdownList = new ArrayList<>();
 	private Thread thread;
 	private boolean running = false;
 
+	@SuppressWarnings("unchecked") // TODO Remove
 	private Main()
 	{
-		new Window(WIDTH, HEIGHT, "Recursion Mapper", this);
+		Window window = new Window(initialWidth, initialHeight, "Recursion Mapper", this);
+		menuBar = new MenuBar(networkManager);
+		window.frame.setJMenuBar(menuBar);
 
-		MouseInput mouseInputListener = new MouseInput(network, buttonList, dropdownList);
+		window.frame.setVisible(true);
+
+		mouseInputListener = new MouseInput(networkManager, buttonList, dropdownList);
 		addMouseListener(mouseInputListener);
 		addMouseMotionListener(mouseInputListener);
 
@@ -42,6 +51,15 @@ public class Main extends Canvas implements Runnable {
 				150,
 				40,
 				30,
+				"Render mode",
+				Renderer.RenderMode.values(),
+				choice -> renderer.renderMode = (Renderer.RenderMode) choice));
+
+		dropdownList.add(new CanvasDropdown(330,
+				10,
+				150,
+				40,
+				30,
 				"Pathfind mode",
 				Pathfinder.PathfindMode.values(),
 				choice -> Pathfinder.PATHFIND_MODE = (Pathfinder.PathfindMode) choice) {
@@ -54,52 +72,25 @@ public class Main extends Canvas implements Runnable {
 			@Override
 			public boolean containsPoint(int pointX, int pointY)
 			{
-				if (mouseInputListener.interactionMode == MouseInput.InteractionMode.PATHFIND) return super.containsPoint(pointX, pointY);
+				if (mouseInputListener.interactionMode == MouseInput.InteractionMode.PATHFIND)
+				{
+					return super.containsPoint(pointX, pointY);
+				}
 				return false;
 			}
 		});
+
+		TextureManager.reloadTextures();
 	}
 
 	public static void main(String args[])
 	{
-		new Main();
-	}
-
-	private void render()
-	{
-		BufferStrategy bs = this.getBufferStrategy();
-		if (bs == null)
-		{
-			this.createBufferStrategy(3);
-			return;
-		}
-
-		Graphics2D g = (Graphics2D) bs.getDrawGraphics();
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-
-		g.setColor(Color.WHITE);
-		g.fillRect(0, 0, WIDTH, HEIGHT);
-
-		network.render(g);
-
-		for (int i = buttonList.size() - 1; i >= 0; i--)
-		{
-			buttonList.get(i).render(g);
-		}
-
-		for (int i = dropdownList.size() - 1; i >= 0; i--)
-		{
-			dropdownList.get(i).render(g);
-		}
-
-		g.dispose();
-		bs.show();
+		main = new Main();
 	}
 
 	private void tick()
 	{
-		network.tick();
+		networkManager.network.tick();
 	}
 
 	public synchronized void start()
@@ -125,6 +116,8 @@ public class Main extends Canvas implements Runnable {
 	@Override
 	public void run()
 	{
+		// Init renderer
+		renderer = new Renderer(this, networkManager, buttonList, dropdownList);
 
 		long lastTickTime = System.nanoTime();
 		double ticksPerSecond = 60.0;
@@ -170,7 +163,7 @@ public class Main extends Canvas implements Runnable {
 			if (sinceLastFrame >= 1 && running)
 			{
 				sinceLastFrame = 0;
-				render();
+				renderer.render();
 				frameCounter++;
 			}
 

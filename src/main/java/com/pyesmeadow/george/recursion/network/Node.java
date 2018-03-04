@@ -1,22 +1,73 @@
 package com.pyesmeadow.george.recursion.network;
 
+import com.pyesmeadow.george.recursion.Renderer;
+
 import java.awt.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Node implements ITraversable {
+public class Node implements ITraversable, Serializable {
 
 	public static final int RADIUS = 12;
-	public int x, y;
-	public List<Connection> connections = new ArrayList<Connection>();
+	private static final long serialVersionUID = 1L;
+	public final char id;
+	private final Network network;
 	protected boolean selected = false;
-	public char id;
+	private int x, y;
+	private List<Connection> connections = new ArrayList<Connection>();
 
-	public Node(int x, int y, char id)
+	public Node(int x, int y, char id, Network network)
 	{
 		this.x = x;
 		this.y = y;
 		this.id = id;
+		this.network = network;
+	}
+
+	public List<Connection> getConnections()
+	{
+		return connections;
+	}
+
+	public void addConnection(Connection connection)
+	{
+		network.markDirty(true);
+		connections.add(connection);
+	}
+
+	public boolean removeConnection(Connection connection)
+	{
+		try
+		{
+			return connections.remove(connection);
+		}
+		finally
+		{
+			network.markDirty(true);
+		}
+	}
+
+	public int getX()
+	{
+		return x;
+	}
+
+	public void setX(int x)
+	{
+		network.markDirty(true);
+		this.x = x;
+	}
+
+	public int getY()
+	{
+		return y;
+	}
+
+	public void setY(int y)
+	{
+		network.markDirty(true);
+		this.y = y;
 	}
 
 	public void setSelected(boolean selected)
@@ -29,7 +80,7 @@ public class Node implements ITraversable {
 
 	}
 
-	public void render(Graphics2D g)
+	public void render(Graphics2D g, Renderer.RenderMode renderMode)
 	{
 		g.setColor(new Color(0, 150, 255));
 		g.fillOval(x - RADIUS, y - RADIUS, RADIUS * 2, RADIUS * 2);

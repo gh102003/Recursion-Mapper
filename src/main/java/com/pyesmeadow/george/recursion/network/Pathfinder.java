@@ -118,8 +118,8 @@ public class Pathfinder {
 					Node node1 = connection.node1;
 					Node node2 = connection.node2;
 
-					int lengthX = node1.x - node2.x;
-					int lengthY = node1.y - node2.y;
+					int lengthX = node1.getX() - node2.getX();
+					int lengthY = node1.getY() - node2.getY();
 
 					// Calculate distance from centre to point using Pythagoras
 					double length = Math.sqrt(Math.pow(lengthX, 2) + Math.pow(lengthY, 2));
@@ -127,6 +127,21 @@ public class Pathfinder {
 				}
 			}
 			return Double.valueOf(cost).intValue();
+		}), SUM_OF_WEIGHTS("Sum of weights", path ->
+		{
+			int weight = 0;
+			for (ITraversable component : path.getComponents())
+			{
+				if (component instanceof Connection)
+				{
+					Connection connection = (Connection) component;
+
+					weight += connection.getWeight();
+				}
+			}
+
+			// Turn weight into cost
+			return -weight;
 		});
 
 		private final String name;
@@ -186,7 +201,7 @@ public class Pathfinder {
 			}
 			else
 			{
-				for (Connection connection : node1.connections)
+				for (Connection connection : node1.getConnections())
 				{
 					Path currentPathClone = (Path) currentPath.clone();
 
