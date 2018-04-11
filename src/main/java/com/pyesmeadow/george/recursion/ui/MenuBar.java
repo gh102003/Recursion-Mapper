@@ -1,6 +1,7 @@
 package com.pyesmeadow.george.recursion.ui;
 
 import com.pyesmeadow.george.recursion.network.io.NetworkManager;
+import com.pyesmeadow.george.recursion.theme.ThemeManager;
 import com.pyesmeadow.george.recursion.util.FileUtils;
 
 import javax.swing.*;
@@ -16,8 +17,9 @@ public class MenuBar extends JMenuBar {
 
 	private JMenu menuTheme;
 	private JMenuItem menuItemOpenThemesFolder;
+	private JMenu subMenuChooseTheme;
 
-	public MenuBar(NetworkManager networkManager)
+	public MenuBar(NetworkManager networkManager, ThemeManager themeManager)
 	{
 		//region File Menu
 		menuFile = new JMenu("File");
@@ -42,7 +44,7 @@ public class MenuBar extends JMenuBar {
 		menuFile.add(menuItemSaveAs);
 		//endregion
 
-		//region File Menu
+		//region Theme Menu
 		menuTheme = new JMenu("Theme");
 
 		menuItemOpenThemesFolder = new JMenuItem("Open themes folder", UIManager.getIcon("FileView.directoryIcon"));
@@ -59,6 +61,22 @@ public class MenuBar extends JMenuBar {
 		});
 
 		menuTheme.add(menuItemOpenThemesFolder);
+
+		// Generate theme choices
+		subMenuChooseTheme = new JMenu("Choose theme");
+		ButtonGroup themeChoices = new ButtonGroup();
+		themeManager.getLoadedThemes().forEach(theme ->
+		{
+			ThemeRadioButtonMenuItem themeChoice = new ThemeRadioButtonMenuItem(theme, themeManager);
+
+			themeChoices.add(themeChoice);
+			subMenuChooseTheme.add(themeChoice);
+		});
+
+		// Selecr first (deafult) theme
+		themeChoices.getElements().nextElement().setSelected(true);
+
+		menuTheme.add(subMenuChooseTheme);
 		//endregion
 
 		add(menuFile);

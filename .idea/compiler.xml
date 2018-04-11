@@ -9,8 +9,8 @@
         <module name="Recursion mapper" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="Recursion mapper" target="1.5" />
+    <bytecodeTargetLevel target="9">
+      <module name="Recursion mapper" target="9" />
     </bytecodeTargetLevel>
   </component>
 </project>

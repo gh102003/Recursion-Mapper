@@ -1,6 +1,7 @@
 package com.pyesmeadow.george.recursion.network;
 
 import com.pyesmeadow.george.recursion.*;
+import com.pyesmeadow.george.recursion.theme.Theme;
 import com.pyesmeadow.george.recursion.util.RenderUtils;
 
 import java.awt.*;
@@ -64,9 +65,12 @@ public class Connection implements ITraversable, Serializable {
 			g.setStroke(new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 50));
 
 			// Carriageway 1 (left)
-			BufferedImage laneTexture = TextureManager.TEXTURES.get("road");
-			BufferedImage edgeLaneTexture = TextureManager.TEXTURES.get("road_edge");
-			BufferedImage borderTexture = TextureManager.TEXTURES.get("road_border");
+//			BufferedImage laneTexture = TextureManager.TEXTURES.get("road");
+//			BufferedImage edgeLaneTexture = TextureManager.TEXTURES.get("road_edge");
+//			BufferedImage borderTexture = TextureManager.TEXTURES.get("road_border");
+			BufferedImage laneTexture = Main.main.themeManager.getTexture(Theme.ThemeTextureType.ROAD_LANE);
+			BufferedImage edgeLaneTexture = Main.main.themeManager.getTexture(Theme.ThemeTextureType.ROAD_EDGE);
+			BufferedImage borderTexture = Main.main.themeManager.getTexture(Theme.ThemeTextureType.ROAD_BORDER);
 
 			int laneCount = weight / 200;
 			int carriagewayWidth = 0;
@@ -104,7 +108,7 @@ public class Connection implements ITraversable, Serializable {
 			}
 
 			// Full road
-			BufferedImage medianTexture = TextureManager.TEXTURES.get("road_median");
+			BufferedImage medianTexture = Main.main.themeManager.getTexture(Theme.ThemeTextureType.ROAD_MEDIAN);
 			width = carriagewayWidth * 2 + medianTexture.getWidth();
 
 			int length = (int) Math.sqrt(Math.pow(node2.getX() - node1.getX(), 2) + Math.pow(node2.getY() - node1.getY(), 2));

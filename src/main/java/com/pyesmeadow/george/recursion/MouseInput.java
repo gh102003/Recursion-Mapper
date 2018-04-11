@@ -12,6 +12,7 @@ import javax.swing.*;
 import javax.swing.event.MouseInputListener;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Random;
 
 public class MouseInput implements MouseInputListener {
 
@@ -111,8 +112,14 @@ public class MouseInput implements MouseInputListener {
 				deselectAllNodes();
 
 				// If the click was on empty space, attempt to create a node there
+
+				// Randomise nodeName
+				Random r = new Random();
+				String nodeName = Node.NODE_NAMES[r.nextInt(Node.NODE_NAMES.length)];
+
 				networkManager.network.addNode(new Node(mouseX,
 						mouseY,
+						nodeName,
 						networkManager.network.assignNodeID(),
 						networkManager.network));
 				break;

@@ -35,6 +35,10 @@ public class Network implements Serializable {
 	{
 		char ID = alphabet.charAt(nodeIDCounter);
 		nodeIDCounter++;
+
+		// If counter at end, loop back to start
+		if (nodeIDCounter >= alphabet.length()) nodeIDCounter = 0;
+
 		return ID;
 	}
 
@@ -42,6 +46,10 @@ public class Network implements Serializable {
 	{
 		char ID = alphabet.toUpperCase().charAt(connectionIDCounter);
 		connectionIDCounter++;
+
+		// If counter at end, loop back to start
+		if (connectionIDCounter >= alphabet.length()) connectionIDCounter = 0;
+
 		return ID;
 	}
 

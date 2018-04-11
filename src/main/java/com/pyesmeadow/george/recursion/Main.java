@@ -2,11 +2,15 @@ package com.pyesmeadow.george.recursion;
 
 import com.pyesmeadow.george.recursion.network.Pathfinder;
 import com.pyesmeadow.george.recursion.network.io.NetworkManager;
+import com.pyesmeadow.george.recursion.theme.Theme;
+import com.pyesmeadow.george.recursion.theme.ThemeLoader;
+import com.pyesmeadow.george.recursion.theme.ThemeManager;
 import com.pyesmeadow.george.recursion.ui.*;
 import com.pyesmeadow.george.recursion.ui.MenuBar;
 import com.pyesmeadow.george.recursion.ui.Window;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,8 +20,9 @@ public class Main extends Canvas implements Runnable {
 	private static int initialWidth = 1280;
 	private static int initialHeight = 720;
 	public MouseInput mouseInputListener;
-	private NetworkManager networkManager = new NetworkManager();
+	public ThemeManager themeManager;
 	public MenuBar menuBar;
+	private NetworkManager networkManager = new NetworkManager();
 	private Renderer renderer;
 	private List<CanvasButton> buttonList = new ArrayList<>();
 	private List<CanvasDropdown> dropdownList = new ArrayList<>();
@@ -27,8 +32,32 @@ public class Main extends Canvas implements Runnable {
 	@SuppressWarnings("unchecked") // TODO Remove
 	private Main()
 	{
+		// Initialise themes
+		List<Theme> themes = new ArrayList<>();
+		try
+		{
+			themes.add(ThemeLoader.loadDefaultTheme());
+		}
+		catch (IOException e)
+		{
+			System.err.println("Could not load default theme");
+			e.printStackTrace();
+		}
+		try
+		{
+			themes.addAll(ThemeLoader.loadCustomThemes());
+		}
+		catch (IOException e)
+		{
+			System.err.println("Could not load custom themes");
+			e.printStackTrace();
+		}
+
+		themeManager = new ThemeManager(themes);
+
 		Window window = new Window(initialWidth, initialHeight, "Recursion Mapper", this);
-		menuBar = new MenuBar(networkManager);
+
+		menuBar = new MenuBar(networkManager, themeManager);
 		window.frame.setJMenuBar(menuBar);
 
 		window.frame.setVisible(true);
@@ -79,8 +108,6 @@ public class Main extends Canvas implements Runnable {
 				return false;
 			}
 		});
-
-		TextureManager.reloadTextures();
 	}
 
 	public static void main(String args[])
@@ -117,7 +144,7 @@ public class Main extends Canvas implements Runnable {
 	public void run()
 	{
 		// Init renderer
-		renderer = new Renderer(this, networkManager, buttonList, dropdownList);
+		renderer = new Renderer(this, themeManager, networkManager, buttonList, dropdownList);
 
 		long lastTickTime = System.nanoTime();
 		double ticksPerSecond = 60.0;

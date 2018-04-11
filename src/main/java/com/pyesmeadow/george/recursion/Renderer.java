@@ -1,6 +1,7 @@
 package com.pyesmeadow.george.recursion;
 
 import com.pyesmeadow.george.recursion.network.io.NetworkManager;
+import com.pyesmeadow.george.recursion.theme.ThemeManager;
 import com.pyesmeadow.george.recursion.ui.CanvasButton;
 import com.pyesmeadow.george.recursion.ui.CanvasDropdown;
 
@@ -11,15 +12,21 @@ import java.util.List;
 public class Renderer {
 
 	private final Main canvas;
+	private final ThemeManager themeManager;
 	private final NetworkManager networkManager;
 	private final List<CanvasButton> buttonList;
 	private final List<CanvasDropdown> dropdownList;
 
 	RenderMode renderMode = RenderMode.STATIC;
 
-	Renderer(Main canvas, NetworkManager networkManager, List<CanvasButton> buttonList, List<CanvasDropdown> dropdownList)
+	Renderer(Main canvas,
+			 ThemeManager themeManager,
+			 NetworkManager networkManager,
+			 List<CanvasButton> buttonList,
+			 List<CanvasDropdown> dropdownList)
 	{
 		this.canvas = canvas;
+		this.themeManager = themeManager;
 		this.networkManager = networkManager;
 		this.buttonList = buttonList;
 		this.dropdownList = dropdownList;
@@ -39,7 +46,7 @@ public class Renderer {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
-		g.setColor(Color.WHITE);
+		g.setColor(themeManager.getCurrentTheme().backgroundColour);
 		g.setStroke(new BasicStroke(1));
 		g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
