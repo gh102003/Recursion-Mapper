@@ -1,4 +1,4 @@
-package com.pyesmeadow.george.recursion;
+package com.pyesmeadow.george.recursion.input;
 
 import com.pyesmeadow.george.recursion.network.Connection;
 import com.pyesmeadow.george.recursion.network.Node;
@@ -23,6 +23,11 @@ public class MouseInput implements MouseInputListener {
 	@Nullable
 	private Node selectedNode;
 
+	/**
+	 * Used in calculating the new position of a node that will be moved
+	 */
+	private int[] cursorOffsetFromSelectedNode;
+
 	public MouseInput(NetworkManager networkManager, List<CanvasButton> buttonList, List<CanvasDropdown> dropdownList)
 	{
 		this.networkManager = networkManager;
@@ -30,13 +35,42 @@ public class MouseInput implements MouseInputListener {
 		this.dropdownList = dropdownList;
 	}
 
-	private static boolean isPointInsideSquareRegion(int pointX, int pointY, int x1, int y1, int x2, int y2)
+	@Override
+	public void mouseClicked(MouseEvent e)
+	{}
+
+	@Override
+	public void mousePressed(MouseEvent e)
 	{
-		return pointX >= x1 && pointX <= x2 && pointY >= y1 && pointY <= y2;
+		int mouseX = e.getX();
+		int mouseY = e.getY();
+
+		if (interactionMode == InteractionMode.MOVE)
+		{
+			List<Node> nodeList = networkManager.network.getNodeList();
+			for (int i = nodeList.size() - 1; i >= 0; i--)
+			{
+				Node node = nodeList.get(i);
+
+				// If the mouse was over a node when it was pressed, select it and deselect all others
+				if (node.containsPoint(mouseX, mouseY))
+				{
+					deselectAllNodes();
+
+					// Select the current node
+					selectedNode = node;
+					node.setSelected(true);
+
+					// Store the cursor offset
+					cursorOffsetFromSelectedNode = new int[]{mouseX - node.getX(), mouseY - node.getY()};
+				}
+			}
+
+		}
 	}
 
 	@Override
-	public void mouseClicked(MouseEvent e)
+	public void mouseReleased(MouseEvent e)
 	{
 		int mouseX = e.getX();
 		int mouseY = e.getY();
@@ -78,7 +112,7 @@ public class MouseInput implements MouseInputListener {
 		{
 			case ADD:
 			{
-				// If a node is clicked, attempt to create a path
+				// If a node is clicked, attempt to create a connection
 				List<Node> nodeList = networkManager.network.getNodeList();
 				for (int i = nodeList.size() - 1; i >= 0; i--)
 				{
@@ -97,7 +131,7 @@ public class MouseInput implements MouseInputListener {
 						}
 						else
 						{
-							// If another node is selected, create a new path and clear the selection
+							// If another node is selected, create a new connection and clear the selection
 							networkManager.network.addConnection(new Connection(selectedNode,
 									node,
 									networkManager.network.assignConnectionID(),
@@ -180,6 +214,34 @@ public class MouseInput implements MouseInputListener {
 				break;
 			}
 			case EDIT:
+				// Edit node weight
+				for (int i = networkManager.network.getNodeList().size() - 1; i >= 0; i--)
+				{
+					Node node = networkManager.network.getNodeList().get(i);
+
+					if (node.containsPoint(mouseX, mouseY))
+					{
+						String input = JOptionPane.showInputDialog("Input a new weight for node " + node.id, node.getWeight());
+
+						// If 'cancel' is pressed, do nothing
+						if (input == null) return;
+
+						try
+						{
+							node.setWeight(Integer.parseInt(input));
+						}
+						catch (NumberFormatException e1)
+						{
+							JOptionPane.showMessageDialog(null,
+									"Could not parse \"" + input + "\", weight will not be changed",
+									"Parse error",
+									JOptionPane.WARNING_MESSAGE);
+						}
+
+						return;
+					}
+				}
+				// Edit connection weight
 				for (int i = networkManager.network.getConnectionList().size() - 1; i >= 0; i--)
 				{
 					Connection connection = networkManager.network.getConnectionList().get(i);
@@ -196,7 +258,7 @@ public class MouseInput implements MouseInputListener {
 						catch (NumberFormatException e1)
 						{
 							JOptionPane.showMessageDialog(null,
-									"Could not parse \"" + input + "\"",
+									"Could not parse \"" + input + "\", weight will not be changed",
 									"Parse error",
 									JOptionPane.WARNING_MESSAGE);
 						}
@@ -205,22 +267,9 @@ public class MouseInput implements MouseInputListener {
 					}
 				}
 				break;
-		}
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e)
-	{
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e)
-	{
-		// If the mouse has been released in move mode, deselect all nodes
-		if (interactionMode == InteractionMode.MOVE)
-		{
-			deselectAllNodes();
+			case MOVE:
+				deselectAllNodes();
+				break;
 		}
 	}
 
@@ -240,28 +289,11 @@ public class MouseInput implements MouseInputListener {
 
 		if (interactionMode == InteractionMode.MOVE)
 		{
-			List<Node> nodeList = networkManager.network.getNodeList();
-			for (int i = nodeList.size() - 1; i >= 0; i--)
+			// If the mouse is dragged when a node is selected, move the selected node to the mouse plus its offset
+			if (selectedNode != null)
 			{
-				Node node = nodeList.get(i);
-				if (node.containsPoint(mouseX, mouseY))
-				{
-					// If the selected node was dragged, move the node
-					if (selectedNode == node)
-					{
-						node.setX(mouseX);
-						node.setY(mouseY);
-					}
-					// If a different node was clicked, deselect all nodes and select
-					else
-					{
-						deselectAllNodes();
-
-						// Select the current node
-						selectedNode = node;
-						node.setSelected(true);
-					}
-				}
+				selectedNode.setX(mouseX - cursorOffsetFromSelectedNode[0]);
+				selectedNode.setY(mouseY - cursorOffsetFromSelectedNode[1]);
 			}
 		}
 	}

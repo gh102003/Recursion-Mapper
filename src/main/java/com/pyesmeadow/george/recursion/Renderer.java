@@ -50,7 +50,7 @@ public class Renderer {
 		g.setStroke(new BasicStroke(1));
 		g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-		networkManager.network.render(g, renderMode);
+		networkManager.network.render(g, renderMode, canvas.mouseInputListener.interactionMode, themeManager);
 
 		for (int i = buttonList.size() - 1; i >= 0; i--)
 		{

@@ -1,5 +1,6 @@
 package com.pyesmeadow.george.recursion;
 
+import com.pyesmeadow.george.recursion.input.MouseInput;
 import com.pyesmeadow.george.recursion.network.Pathfinder;
 import com.pyesmeadow.george.recursion.network.io.NetworkManager;
 import com.pyesmeadow.george.recursion.theme.Theme;
@@ -19,9 +20,9 @@ public class Main extends Canvas implements Runnable {
 	public static Main main;
 	private static int initialWidth = 1280;
 	private static int initialHeight = 720;
-	public MouseInput mouseInputListener;
-	public ThemeManager themeManager;
 	public MenuBar menuBar;
+	MouseInput mouseInputListener;
+	private ThemeManager themeManager;
 	private NetworkManager networkManager = new NetworkManager();
 	private Renderer renderer;
 	private List<CanvasButton> buttonList = new ArrayList<>();
@@ -55,16 +56,16 @@ public class Main extends Canvas implements Runnable {
 
 		themeManager = new ThemeManager(themes);
 
+		mouseInputListener = new MouseInput(networkManager, buttonList, dropdownList);
+		addMouseListener(mouseInputListener);
+		addMouseMotionListener(mouseInputListener);
+
 		Window window = new Window(initialWidth, initialHeight, "Recursion Mapper", this);
 
 		menuBar = new MenuBar(networkManager, themeManager);
 		window.frame.setJMenuBar(menuBar);
 
 		window.frame.setVisible(true);
-
-		mouseInputListener = new MouseInput(networkManager, buttonList, dropdownList);
-		addMouseListener(mouseInputListener);
-		addMouseMotionListener(mouseInputListener);
 
 		dropdownList.add(new CanvasDropdown(10,
 				10,

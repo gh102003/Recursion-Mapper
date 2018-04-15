@@ -2,8 +2,9 @@ package com.pyesmeadow.george.recursion.theme;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
 
 public class Theme {
 
@@ -22,17 +23,17 @@ public class Theme {
 		if (!validate()) throw new IllegalArgumentException("This theme has not been set up correctly");
 	}
 
-	public void setTextures(Map<ThemeTextureType, BufferedImage> textures)
+	void setTextures(Map<ThemeTextureType, BufferedImage> textures)
 	{
 		this.textures = textures;
 	}
 
-	public BufferedImage getTexture(ThemeTextureType textureType)
+	BufferedImage getTexture(ThemeTextureType textureType)
 	{
 		return textures.get(textureType);
 	}
 
-	public boolean validate()
+	boolean validate()
 	{
 		// Check name and colours are not null
 		if (name == null || nodeColour == null || backgroundColour == null) return false;
@@ -43,24 +44,19 @@ public class Theme {
 			return false;
 		}
 
-		// Check heights are the same for all textures
-		List<BufferedImage> textureList = new ArrayList<>(textures.values());
-		for (int i = 0; i < textureList.size() - 1; i++)
-		{
-			BufferedImage current = textureList.get(i);
-			BufferedImage next = textureList.get(i + 1);
-
-			if (current.getHeight() != next.getHeight())
-			{
-				return false;
-			}
-		}
-
 		return true;
 	}
 
 	public enum ThemeTextureType {
-		ROAD_BORDER("road/border"), ROAD_MEDIAN("road/median"), ROAD_EDGE("road/edge"), ROAD_LANE("road/lane");
+		ROAD_BORDER("road/border"),
+		ROAD_MEDIAN("road/median"),
+		ROAD_EDGE("road/edge"),
+		ROAD_LANE("road/lane"),
+		SETTLEMENT_TINY("settlement/tiny"),
+		SETTLEMENT_SMALL("settlement/small"),
+		SETTLEMENT_MEDIUM("settlement/medium"),
+		SETTLEMENT_LARGE("settlement/large"),
+		SETTLEMENT_GIANT("settlement/giant");
 
 		private String path;
 

@@ -2,7 +2,10 @@ package com.pyesmeadow.george.recursion.network;
 
 import com.pyesmeadow.george.recursion.Main;
 import com.pyesmeadow.george.recursion.Renderer;
+import com.pyesmeadow.george.recursion.input.MouseInput;
+import com.pyesmeadow.george.recursion.theme.ThemeManager;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -33,22 +36,34 @@ public class Network implements Serializable {
 
 	public synchronized char assignNodeID()
 	{
-		char ID = alphabet.charAt(nodeIDCounter);
-		nodeIDCounter++;
+		// Warn when reaching end of alphabet
+		if (nodeIDCounter == alphabet.length())
+		{
+			JOptionPane.showMessageDialog(null,
+					"You have reached the end of the alphabet, so node IDs will now be repeated.",
+					"Node IDs will now be repeated",
+					JOptionPane.WARNING_MESSAGE);
+		}
 
-		// If counter at end, loop back to start
-		if (nodeIDCounter >= alphabet.length()) nodeIDCounter = 0;
+		char ID = alphabet.charAt(nodeIDCounter % alphabet.length());
+		nodeIDCounter++;
 
 		return ID;
 	}
 
 	public synchronized char assignConnectionID()
 	{
-		char ID = alphabet.toUpperCase().charAt(connectionIDCounter);
-		connectionIDCounter++;
+		// Warn when reaching end of alphabet
+		if (connectionIDCounter == alphabet.length())
+		{
+			JOptionPane.showMessageDialog(null,
+					"You have reached the end of the alphabet, so connection IDs will now be reapeated.",
+					"Connection IDs will now be repeated",
+					JOptionPane.WARNING_MESSAGE);
+		}
 
-		// If counter at end, loop back to start
-		if (connectionIDCounter >= alphabet.length()) connectionIDCounter = 0;
+		char ID = alphabet.toUpperCase().charAt(connectionIDCounter % alphabet.length());
+		connectionIDCounter++;
 
 		return ID;
 	}
@@ -63,18 +78,18 @@ public class Network implements Serializable {
 		return connectionList;
 	}
 
-	public void render(Graphics2D g, Renderer.RenderMode renderMode)
+	public void render(Graphics2D g, Renderer.RenderMode renderMode, MouseInput.InteractionMode interactionMode, ThemeManager themeManager)
 	{
 		for (int i = connectionList.size() - 1; i >= 0; i--)
 		{
 			Connection connection = connectionList.get(i);
-			connection.render(g, renderMode);
+			connection.render(g, renderMode, interactionMode, themeManager);
 		}
 
 		for (int i = nodeList.size() - 1; i >= 0; i--)
 		{
 			Node node = nodeList.get(i);
-			node.render(g, renderMode);
+			node.render(g, renderMode, interactionMode, themeManager);
 		}
 	}
 

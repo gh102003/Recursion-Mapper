@@ -1,7 +1,9 @@
 package com.pyesmeadow.george.recursion.network;
 
-import com.pyesmeadow.george.recursion.*;
+import com.pyesmeadow.george.recursion.Renderer;
+import com.pyesmeadow.george.recursion.input.MouseInput;
 import com.pyesmeadow.george.recursion.theme.Theme;
+import com.pyesmeadow.george.recursion.theme.ThemeManager;
 import com.pyesmeadow.george.recursion.util.RenderUtils;
 
 import java.awt.*;
@@ -22,7 +24,7 @@ public class Connection implements ITraversable, Serializable {
 	protected boolean selected = false;
 	private int weight;
 
-	public Connection(Node node1, Node node2, char id, int weight, Network network)
+	public Connection(Node node1, Node node2, int weight, char id, Network network)
 	{
 		this.node1 = node1;
 		this.node2 = node2;
@@ -36,7 +38,7 @@ public class Connection implements ITraversable, Serializable {
 
 	public Connection(Node node1, Node node2, char id, Network network)
 	{
-		this(node1, node2, id, new Random().nextInt(1000), network);
+		this(node1, node2, new Random().nextInt(1000), id, network);
 	}
 
 	public int getWeight()
@@ -55,7 +57,10 @@ public class Connection implements ITraversable, Serializable {
 
 	}
 
-	public void render(Graphics2D g, Renderer.RenderMode renderMode)
+	public void render(Graphics2D g,
+					   Renderer.RenderMode renderMode,
+					   MouseInput.InteractionMode interactionMode,
+					   ThemeManager themeManager)
 	{
 		int width = 3;
 
@@ -65,12 +70,9 @@ public class Connection implements ITraversable, Serializable {
 			g.setStroke(new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 50));
 
 			// Carriageway 1 (left)
-//			BufferedImage laneTexture = TextureManager.TEXTURES.get("road");
-//			BufferedImage edgeLaneTexture = TextureManager.TEXTURES.get("road_edge");
-//			BufferedImage borderTexture = TextureManager.TEXTURES.get("road_border");
-			BufferedImage laneTexture = Main.main.themeManager.getTexture(Theme.ThemeTextureType.ROAD_LANE);
-			BufferedImage edgeLaneTexture = Main.main.themeManager.getTexture(Theme.ThemeTextureType.ROAD_EDGE);
-			BufferedImage borderTexture = Main.main.themeManager.getTexture(Theme.ThemeTextureType.ROAD_BORDER);
+			BufferedImage laneTexture = themeManager.getTexture(Theme.ThemeTextureType.ROAD_LANE);
+			BufferedImage edgeLaneTexture = themeManager.getTexture(Theme.ThemeTextureType.ROAD_EDGE);
+			BufferedImage borderTexture = themeManager.getTexture(Theme.ThemeTextureType.ROAD_BORDER);
 
 			int laneCount = weight / 200;
 			int carriagewayWidth = 0;
@@ -108,7 +110,7 @@ public class Connection implements ITraversable, Serializable {
 			}
 
 			// Full road
-			BufferedImage medianTexture = Main.main.themeManager.getTexture(Theme.ThemeTextureType.ROAD_MEDIAN);
+			BufferedImage medianTexture = themeManager.getTexture(Theme.ThemeTextureType.ROAD_MEDIAN);
 			width = carriagewayWidth * 2 + medianTexture.getWidth();
 
 			int length = (int) Math.sqrt(Math.pow(node2.getX() - node1.getX(), 2) + Math.pow(node2.getY() - node1.getY(), 2));
@@ -179,7 +181,6 @@ public class Connection implements ITraversable, Serializable {
 		g.setColor(Color.BLACK);
 		g.drawString(String.valueOf(id), (node1.getX() + node2.getX()) / 2, (node1.getY() + node2.getY()) / 2);
 
-		MouseInput.InteractionMode interactionMode = Main.main.mouseInputListener.interactionMode;
 		if (interactionMode == MouseInput.InteractionMode.EDIT || interactionMode == MouseInput.InteractionMode.PATHFIND)
 		{
 			g.drawString("Weight: " + String.valueOf(weight),
